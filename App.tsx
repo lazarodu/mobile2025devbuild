@@ -1,20 +1,24 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import 'react-native-get-random-values'
+import { useEffect } from 'react';
+import { AuthProvider } from './src/context/auth';
+import { Navigation } from './src/navigations';
+import { testSupabaseConnection } from './src/utils/testSupabase';
+import DatabaseConnection from './src/core/infra/sqlite/connection';
+import { SyncService } from './src/core/services/SyncService';
 
 export default function App() {
+  useEffect(() => {
+    async function initializeApp() {
+      await testSupabaseConnection();
+      await DatabaseConnection.getConnection();
+      SyncService.getInstance();
+    }
+    initializeApp();
+  }, []);
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <AuthProvider>
+      <Navigation />
+    </AuthProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
