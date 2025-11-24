@@ -1,14 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
 import MapView, { Marker, Region } from 'react-native-maps';
 import { Alert, Text, View, StyleSheet } from 'react-native';
-import { useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import MapViewDirections from 'react-native-maps-directions';
 import { useAuth } from '../../context/auth';
 import { makeUserUseCases } from '../../core/factories/makeUserUseCases';
 import { User } from '../../core/domain/entities/User';
 import { VinylRecord } from '../../core/domain/entities/VinylRecord';
 import { colors } from '../../styles/colors';
-import { ComponentLoading } from '../../components';
+import { ComponentButtonInterface, ComponentLoading } from '../../components';
+import { makeLoanUseCases } from '../../core/factories/makeLoanUseCases';
 
 export function BorrowMapScreen() {
   const [owner, setOwner] = useState<User | null>(null);
@@ -18,6 +19,8 @@ export function BorrowMapScreen() {
   const { record } = route.params as { record: VinylRecord };
   const mapRef = useRef<MapView>(null);
   const userUseCases = makeUserUseCases();
+  const loanUseCases = makeLoanUseCases();
+  const navigation = useNavigation();
 
   useEffect(() => {
     async function fetchOwner() {
@@ -45,6 +48,25 @@ export function BorrowMapScreen() {
       });
     }
   }, [owner, borrower]);
+
+  async function handleBorrow() {
+    if (!borrower) {
+      Alert.alert('Error', 'You must be logged in to borrow a vinyl record.');
+      return;
+    }
+
+    try {
+      await loanUseCases.borrowVinylRecord.execute({
+        userId: borrower.id,
+        vinylRecordId: record.id,
+      });
+      Alert.alert('Success', 'Vinyl record borrowed successfully!');
+      navigation.goBack(); // Navigate back after successful borrow
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Error', 'Failed to borrow vinyl record.');
+    }
+  }
 
   if (!owner || !borrower || !region) {
     return <ComponentLoading />;
@@ -87,6 +109,10 @@ export function BorrowMapScreen() {
           }}
         />
       </MapView>
+      <View style={styles.buttonContainer}>
+        <ComponentButtonInterface title="Borrow" type="primary" onPress={handleBorrow} />
+        <ComponentButtonInterface title="Back" type="secondary" onPress={() => navigation.goBack()} />
+      </View>
     </View>
   );
 }
@@ -98,5 +124,11 @@ const styles = StyleSheet.create({
   map: {
     width: '100%',
     height: '100%',
+  },
+  buttonContainer: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    right: 20,
   },
 });

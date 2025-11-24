@@ -6,12 +6,25 @@ import { VinylRecordTypes } from "../../navigations/VinylRecordStackNavigation";
 import { makeVinylRecordUseCases } from "../../core/factories/makeVinylRecordUseCases";
 import { Entypo } from "@expo/vector-icons";
 import { colors } from "../../styles/colors";
+import { makeLoanUseCases } from "../../core/factories/makeLoanUseCases";
+import { useEffect, useState } from "react";
+import { Loan } from "../../core/domain/entities/Loan";
 
 
 export function VinylRecordDetailsScreen({ navigation }: VinylRecordTypes) {
     const route = useRoute()
     const { record } = route.params as { record: VinylRecord };
     const vinylRecordUseCases = makeVinylRecordUseCases();
+    const loanUseCases = makeLoanUseCases();
+    const [currentLoan, setCurrentLoan] = useState<Loan | null>(null);
+
+    useEffect(() => {
+        async function fetchLoanStatus() {
+            const loan = await loanUseCases.findCurrentLoanOfRecord.execute(record.id);
+            setCurrentLoan(loan);
+        }
+        fetchLoanStatus();
+    }, [record.id]);
 
     async function handleDelete() {
         Alert.alert("Delete", "Are you sure you want to delete this record?", [
@@ -44,6 +57,7 @@ export function VinylRecordDetailsScreen({ navigation }: VinylRecordTypes) {
             <Text>Album: {record.album.value}</Text>
             <Text>Year: {record.year}</Text>
             <Text>Number of Tracks: {record.numberOfTracks}</Text>
+            <Text>Status: {currentLoan ? "Emprestado" : "Disponível"}</Text>
             <View style={styles.contentRow}>
                 <ComponentButtonInterface type="secondary" title="Edit"
                     onPress={() => navigation.navigate("EditVinylRecord", { record })}
@@ -59,13 +73,15 @@ export function VinylRecordDetailsScreen({ navigation }: VinylRecordTypes) {
                         <Entypo name="trash" size={24} color={colors.white} />
                     </ComponentButtonInterface.Icon>
                 </ComponentButtonInterface>
-                <ComponentButtonInterface type="third" title="Emprestar"
-                    onPress={() => navigation.navigate("BorrowMapScreen", { record })}
-                >
-                    <ComponentButtonInterface.Icon>
-                        <Entypo name="map" size={24} color={colors.white} />
-                    </ComponentButtonInterface.Icon>
-                </ComponentButtonInterface>
+                {!currentLoan && (
+                    <ComponentButtonInterface type="third" title="Emprestar"
+                        onPress={() => navigation.navigate("BorrowMapScreen", { record })}
+                    >
+                        <ComponentButtonInterface.Icon>
+                            <Entypo name="map" size={24} color={colors.white} />
+                        </ComponentButtonInterface.Icon>
+                    </ComponentButtonInterface>
+                )}
             </View>
             <ComponentButtonInterface type="primary" title="Voltar"
                 onPress={() => navigation.navigate("ListVinylRecords")}

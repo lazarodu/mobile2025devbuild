@@ -2,6 +2,7 @@ import { Loan } from '../entities/Loan';
 import { ILoanRepository } from '../repositories/ILoanRepository';
 import { IVinylRecordRepository } from '../repositories/IVinylRecordRepository';
 import { IUserRepository } from '../repositories/IUserRepository';
+import { v4 as uuidv4 } from 'uuid';
 
 export class BorrowVinylRecord {
   constructor(
@@ -35,7 +36,7 @@ export class BorrowVinylRecord {
     }
 
     const loan = Loan.create(
-      Math.random().toString(),
+      uuidv4(),
       userId,
       vinylRecordId,
       new Date()
