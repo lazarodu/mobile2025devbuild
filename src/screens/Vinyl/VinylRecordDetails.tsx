@@ -9,6 +9,7 @@ import { colors } from "../../styles/colors";
 import { makeLoanUseCases } from "../../core/factories/makeLoanUseCases";
 import { useEffect, useState } from "react";
 import { Loan } from "../../core/domain/entities/Loan";
+import { useAuth } from "../../context/auth";
 
 
 export function VinylRecordDetailsScreen({ navigation }: VinylRecordTypes) {
@@ -16,6 +17,7 @@ export function VinylRecordDetailsScreen({ navigation }: VinylRecordTypes) {
     const { record } = route.params as { record: VinylRecord };
     const vinylRecordUseCases = makeVinylRecordUseCases();
     const loanUseCases = makeLoanUseCases();
+    const { user } = useAuth(); // Get the authenticated user
     const [currentLoan, setCurrentLoan] = useState<Loan | null>(null);
 
     useEffect(() => {
@@ -27,7 +29,7 @@ export function VinylRecordDetailsScreen({ navigation }: VinylRecordTypes) {
     }, [record.id]);
 
     async function handleDelete() {
-        Alert.alert("Delete", "Are you sure you want to delete this record?", [
+        Alert.alert("Delete", "Você tem certeza que deseja apagar esse registro?", [
             {
                 text: "Cancel",
                 style: "cancel"
@@ -38,16 +40,18 @@ export function VinylRecordDetailsScreen({ navigation }: VinylRecordTypes) {
                     try {
                         await vinylRecordUseCases.deleteVinylRecord.execute({ id: record.id });
                         const segments = record.photo.url.split('/');
-                        await vinylRecordUseCases.deleteFile.execute({bucket: 'photos', path: segments.pop() || ''})
-                        Alert.alert("Success", "Record deleted successfully");
+                        await vinylRecordUseCases.deleteFile.execute({ bucket: 'photos', path: segments.pop() || '' })
+                        Alert.alert("Success", "Registro apagado com sucesso");
                         navigation.navigate("ListVinylRecords");
                     } catch (error) {
-                        Alert.alert("Error", "Failed to delete record");
+                        Alert.alert("Error", "Falha ao apagar o registro");
                     }
                 }
             }
         ])
     }
+
+    const isOwner = user && user.id === record.ownerId; // Check if the logged-in user is the owner
 
     return (
         <View style={styles.container}>
@@ -59,21 +63,25 @@ export function VinylRecordDetailsScreen({ navigation }: VinylRecordTypes) {
             <Text>Number of Tracks: {record.numberOfTracks}</Text>
             <Text>Status: {currentLoan ? "Emprestado" : "Disponível"}</Text>
             <View style={styles.contentRow}>
-                <ComponentButtonInterface type="secondary" title="Edit"
-                    onPress={() => navigation.navigate("EditVinylRecord", { record })}
-                >
-                    <ComponentButtonInterface.Icon>
-                        <Entypo name="pencil" size={24} color={colors.white} />
-                    </ComponentButtonInterface.Icon>
-                </ComponentButtonInterface>
-                <ComponentButtonInterface type="danger" title="Delete"
-                    onPress={handleDelete}
-                >
-                    <ComponentButtonInterface.Icon>
-                        <Entypo name="trash" size={24} color={colors.white} />
-                    </ComponentButtonInterface.Icon>
-                </ComponentButtonInterface>
-                {!currentLoan && (
+                {isOwner && ( // Conditionally render if the user is the owner
+                    <>
+                        <ComponentButtonInterface type="secondary" title="Edit"
+                            onPress={() => navigation.navigate("EditVinylRecord", { record })}
+                        >
+                            <ComponentButtonInterface.Icon>
+                                <Entypo name="pencil" size={24} color={colors.white} />
+                            </ComponentButtonInterface.Icon>
+                        </ComponentButtonInterface>
+                        <ComponentButtonInterface type="danger" title="Delete"
+                            onPress={handleDelete}
+                        >
+                            <ComponentButtonInterface.Icon>
+                                <Entypo name="trash" size={24} color={colors.white} />
+                            </ComponentButtonInterface.Icon>
+                        </ComponentButtonInterface>
+                    </>
+                )}
+                {!currentLoan && !isOwner && (
                     <ComponentButtonInterface type="third" title="Emprestar"
                         onPress={() => navigation.navigate("BorrowMapScreen", { record })}
                     >

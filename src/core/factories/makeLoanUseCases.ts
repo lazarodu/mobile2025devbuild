@@ -4,6 +4,7 @@ import { IVinylRecordRepository } from '../domain/repositories/IVinylRecordRepos
 import { BorrowVinylRecord } from '../domain/use-cases/BorrowVinylRecord';
 import { ReturnVinylRecord } from '../domain/use-cases/ReturnVinylRecord';
 import { FindCurrentLoanOfRecord } from '../domain/use-cases/FindCurrentLoanOfRecord';
+import { FindLoansByUser } from '../domain/use-cases/FindLoansByUser';
 import { HybridLoanRepository } from '../infra/repositories/HybridLoanRepository';
 import { HybridUserRepository } from '../infra/repositories/HybridUserRepository';
 import { HybridVinylRecordRepository } from '../infra/repositories/HybridVinylRecordRepository';
@@ -20,10 +21,12 @@ export function makeLoanUseCases() {
   );
   const returnVinylRecord = new ReturnVinylRecord(loanRepository);
   const findCurrentLoanOfRecord = new FindCurrentLoanOfRecord(loanRepository);
+  const findLoansByUser = new FindLoansByUser(loanRepository);
 
   return {
     borrowVinylRecord,
     returnVinylRecord,
     findCurrentLoanOfRecord,
+    findLoansByUser,
   };
 }

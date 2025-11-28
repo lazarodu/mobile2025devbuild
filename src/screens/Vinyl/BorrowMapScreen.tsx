@@ -51,7 +51,7 @@ export function BorrowMapScreen() {
 
   async function handleBorrow() {
     if (!borrower) {
-      Alert.alert('Error', 'You must be logged in to borrow a vinyl record.');
+      Alert.alert('Error', 'Você precisa fazer login para pedir um vinil emprestado.');
       return;
     }
 
@@ -60,11 +60,11 @@ export function BorrowMapScreen() {
         userId: borrower.id,
         vinylRecordId: record.id,
       });
-      Alert.alert('Success', 'Vinyl record borrowed successfully!');
+      Alert.alert('Success', 'Solicitação de empréstimo realizada!');
       navigation.goBack(); // Navigate back after successful borrow
     } catch (error) {
       console.error(error);
-      Alert.alert('Error', 'Failed to borrow vinyl record.');
+      Alert.alert('Error', 'Falha ao solicitar o empréstimo.');
     }
   }
 
@@ -89,8 +89,8 @@ export function BorrowMapScreen() {
   return (
     <View style={styles.container}>
       <MapView style={styles.map} initialRegion={region} ref={mapRef}>
-        <Marker coordinate={ownerCoords} title={owner.name.value} description="Vinyl Owner" />
-        <Marker coordinate={borrowerCoords} title={borrower.name.value} description="You" />
+        <Marker coordinate={ownerCoords} title={owner.name.value} description="Dono do Vinil" />
+        <Marker coordinate={borrowerCoords} title={borrower.name.value} description="Você" />
         <MapViewDirections
           origin={borrowerCoords}
           destination={ownerCoords}
@@ -110,8 +110,8 @@ export function BorrowMapScreen() {
         />
       </MapView>
       <View style={styles.buttonContainer}>
-        <ComponentButtonInterface title="Borrow" type="primary" onPress={handleBorrow} />
-        <ComponentButtonInterface title="Back" type="secondary" onPress={() => navigation.goBack()} />
+        <ComponentButtonInterface title="Pedir" type="primary" onPress={handleBorrow} />
+        <ComponentButtonInterface title="Voltar" type="secondary" onPress={() => navigation.goBack()} />
       </View>
     </View>
   );
